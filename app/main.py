@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_server.routers import server
 
 app = FastAPI()
 
@@ -11,6 +12,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(server.router)
+
 @app.get("/")
-async def root():
-    return {"message": "Hello World!!!!"}
+def read_root():
+    return {
+        "status": "online",
+        "api_version": "0.0.1",
+        "docs": "/docs",
+    }
