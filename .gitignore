@@ -3,3 +3,4 @@ venv_bkp
 pyrightconfig.json
 __pycache__
 .ropeproject
+data/

@@ -2,6 +2,10 @@ services:
     backend:
         build: ./
         restart: always
+        environment:
+            - HOST_PWD=${PWD}
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
         labels:
             # Enable Traefik for this specific "backend" service
             - traefik.enable=true

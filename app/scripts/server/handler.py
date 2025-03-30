@@ -1,13 +1,14 @@
 from python_on_whales import docker
 import os
 
+host_pwd = os.environ.get('HOST_PWD')
+
 def start_server(server_id: str, name: str, type: str, version: str):
     '''
     Run a docker container with the minecraft server image
     '''
 
-    data_dir = f"./data/servers/{server_id}"
-
+    data_dir = f"{host_pwd}/data/servers/{server_id}"
     os.makedirs(data_dir, exist_ok=True)
 
     if docker.container.exists(server_id):
