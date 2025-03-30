@@ -17,9 +17,15 @@ app = FastAPI(openapi_url=None)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        # Prod
+        "https://craft4free.online",
+         "https://www.craft4free.online",
+        # Dev
+        "https://dev.d2w3788e6h0dd9.amplifyapp.com"
+    ],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 app.include_router(server.router)
@@ -28,6 +34,5 @@ app.include_router(server.router)
 def read_root():
     return {
         "status": "online",
-        "api_version": "0.0.1",
-        "docs": "/docs",
+        "api_version": "0.0.1"
     }
