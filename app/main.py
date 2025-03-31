@@ -22,7 +22,8 @@ app.add_middleware(
         "https://craft4free.online",
          "https://www.craft4free.online",
         # Dev
-        "https://dev.d2w3788e6h0dd9.amplifyapp.com"
+        "https://dev.d2w3788e6h0dd9.amplifyapp.com",
+        "http://localhost:5173"
     ],
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
