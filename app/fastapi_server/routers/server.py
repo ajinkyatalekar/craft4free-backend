@@ -7,6 +7,7 @@ from fastapi_server.routers.server_models import ServerCreationReq, ServerCreati
 
 from config.supabase import supabase
 from scripts.server.handler import get_server_port, start_server, stop_server
+from scripts.server.info import get_server_status
 
 router = APIRouter()
 
@@ -128,18 +129,9 @@ async def get_all_servers(user = Depends(verify_token)):
 
         servers = []
         for server in response.data:
-            server_port = get_server_port(server["id"])
-            if server_port:
-                running = True
-                url = f"129.213.144.81:{server_port}"
-            else:
-                running = False
-                url = "-1"
-
             servers.append({
                 "server": server,
-                "running": running,
-                "url": url
+                "status": get_server_status(server["id"]),
             })
         return StandardResp(
             success=True,
@@ -162,19 +154,10 @@ async def get_server_(server_id: str, user = Depends(verify_token)):
         return {"error": "Error fetching server"}
 
     try:
-        server_port = get_server_port(server_id)
-        if server_port:
-            running = True
-            url = f"129.213.144.81:{server_port}"
-        else:
-            running = False
-            url = "-1"
-
         return StandardResp(
             success=True,
             data={
-                "url": url,
-                "running": running,
+                "status": get_server_status(server_id),
                 "server": resp.data
             }
         )

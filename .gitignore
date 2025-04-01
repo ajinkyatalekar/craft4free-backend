@@ -4,3 +4,5 @@ pyrightconfig.json
 __pycache__
 .ropeproject
 data/
+start-server.sh
+stop-server.sh
