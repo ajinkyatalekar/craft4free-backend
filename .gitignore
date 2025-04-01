@@ -6,3 +6,5 @@ __pycache__
 data/
 start-server.sh
 stop-server.sh
+
+test.py

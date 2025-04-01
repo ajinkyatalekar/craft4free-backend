@@ -6,7 +6,7 @@ from fastapi_server.core.security import verify_token
 from fastapi_server.routers.server_models import ServerCreationReq, ServerCreationResp, CreationStatus, ErrorDetail, ServerStartReq, ServerStartResp, ServerData, StandardResp
 
 from config.supabase import supabase
-from scripts.server.handler import get_server_port, start_server, stop_server
+from scripts.server.handler import start_server, stop_server
 from scripts.server.info import get_server_status
 
 router = APIRouter()
