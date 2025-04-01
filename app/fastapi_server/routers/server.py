@@ -117,6 +117,42 @@ async def delete_server_(server_id: str, user = Depends(verify_token)):
         print(f"Error fetching server: {e}")
         return {"error": "Error fetching server"}
 
+@router.get("/server")
+async def get_all_servers(user = Depends(verify_token)):
+    try:
+        response = (supabase.table("servers")
+            .select("*")
+            .eq("user_id", user["sub"])
+            .is_("deleted_at", None)
+            .execute())
+
+        servers = []
+        for server in response.data:
+            server_port = get_server_port(server["id"])
+            if server_port:
+                running = True
+                url = f"129.213.144.81:{server_port}"
+            else:
+                running = False
+                url = "-1"
+
+            servers.append({
+                "server": server,
+                "running": running,
+                "url": url
+            })
+        return StandardResp(
+            success=True,
+            data=servers
+        )
+
+    except Exception as e:
+        print(f"Error fetching servers: {e}")
+        return StandardResp(
+            success=False,
+            data=[]
+        )
+
 @router.post("/server/{server_id}")
 async def get_server_(server_id: str, user = Depends(verify_token)):
     try:
