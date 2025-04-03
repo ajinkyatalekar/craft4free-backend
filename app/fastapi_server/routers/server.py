@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, status, BackgroundTasks
+from fastapi import APIRouter, Depends, WebSocket, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 import datetime
+
+from starlette.websockets import WebSocketDisconnect
 
 from fastapi_server.core.security import verify_token
 from fastapi_server.routers.server_models import ServerCreationReq, ServerCreationResp, CreationStatus, ErrorDetail, ServerStartReq, ServerStartResp, ServerData, StandardResp
@@ -8,6 +10,9 @@ from fastapi_server.routers.server_models import ServerCreationReq, ServerCreati
 from config.supabase import supabase
 from scripts.server.handler import start_server, stop_server
 from scripts.server.info import get_server_status
+
+from python_on_whales import docker
+import asyncio
 
 router = APIRouter()
 
@@ -173,3 +178,74 @@ async def get_server_(server_id: str, user = Depends(verify_token)):
                 )
             ).dict()
         )
+
+server_processes = {}
+@router.websocket("/ws/{server_id}")
+async def websocket_endpoint(websocket: WebSocket, server_id: str):
+    await websocket.accept()
+    # Initialize server entry if it doesn't exist
+    if server_id not in server_processes:
+        server_processes[server_id] = {
+            'connected_clients': set()
+        }
+    # Add this client to the set of connected clients
+    server_processes[server_id]['connected_clients'].add(websocket)
+    try:
+        # Get the container ID for this server
+        container_id = server_id
+        if not container_id:
+            await websocket.send_text("[SERVER_NOT_RUNNING]")
+        else:
+            try:
+                # Get the container
+                container = docker.container.inspect(container_id)
+
+                # Send historical logs first (last 100 lines)
+                logs = container.logs(tail=100).splitlines()
+                for line in logs:
+                    line_text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+                    await websocket.send_text(line_text)
+
+                # For python-on-whales, we need to use asyncio subprocess to stream logs
+                async def stream_logs():
+                    # Use docker CLI directly for streaming
+                    process = await asyncio.create_subprocess_shell(
+                        f"docker logs -f {container_id}",
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+
+                    # Check if process started correctly
+                    if process.stdout is None:
+                        await websocket.send_text("[ERROR] Failed to start log streaming")
+                        return
+
+                    while True:
+                        line = await process.stdout.readline()
+                        if not line:
+                            break
+                        line_text = line.decode('utf-8').strip()
+                        try:
+                            await websocket.send_text(line_text)
+                        except Exception:
+                            # WebSocket closed
+                            process.kill()
+                            break
+
+                # Start stream logs task
+                task = asyncio.create_task(stream_logs())
+
+                # Keep the websocket open
+                try:
+                    while True:
+                        await asyncio.sleep(1)  # Simple keep-alive approach
+                except WebSocketDisconnect:
+                    task.cancel()
+
+            except Exception as e:
+                await websocket.send_text(f"[ERROR] {str(e)}")
+                await websocket.send_text("[SERVER_NOT_RUNNING]")
+    except WebSocketDisconnect:
+        # Remove this client from the set of connected clients
+        if server_id in server_processes:
+            server_processes[server_id]['connected_clients'].discard(websocket)
