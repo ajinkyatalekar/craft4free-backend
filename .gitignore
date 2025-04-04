@@ -8,3 +8,5 @@ start-server.sh
 stop-server.sh
 
 test.py
+
+.env

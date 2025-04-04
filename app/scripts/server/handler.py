@@ -3,13 +3,6 @@ import os
 
 host_pwd = os.environ.get('HOST_PWD')
 
-def get_server_port(server_id: str):
-    if docker.container.exists(server_id) and docker.container.inspect(server_id).state.status == "running":
-        ports = docker.container.inspect(server_id).network_settings.ports
-        if ports:
-            return ports["25565/tcp"][0]["HostPort"]
-    return None
-
 def start_server(server_id: str, name: str, type: str, version: str):
     '''
     Run a docker container with the minecraft server image
