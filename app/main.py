@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_server.routers import server
+from fastapi_server.routers import server_old
 
 # You might need to add this to your startup script if you have permission issues
 import subprocess
@@ -12,7 +13,7 @@ except:
     # Try to fix permissions if you have sudo access
     subprocess.run(["sudo", "chmod", "666", "/var/run/docker.sock"])
 
-app = FastAPI(openapi_url=None)
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(server.router)
+app.include_router(server_old.router)
 
 @app.get("/")
 def read_root():
