@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 app.include_router(server.router)
-app.include_router(server_old.router)
+# app.include_router(server_old.router)
 
 @app.get("/")
 def read_root():

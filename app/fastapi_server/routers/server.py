@@ -13,7 +13,7 @@ from scripts.server.services.server_service import ServerService
 
 router = APIRouter()
 
-@router.post("/new/servers/{server_id}")
+@router.post("/servers/{server_id}")
 async def get_server(server_id: str, user = Depends(verify_token)):
     try:
         resp = (supabase.table("servers").select("*").eq("id", server_id).single().execute())
@@ -40,7 +40,7 @@ async def get_server(server_id: str, user = Depends(verify_token)):
             ).dict()
         )
 
-@router.get("/new/servers")
+@router.get("/servers")
 async def get_all_servers(user = Depends(verify_token)):
     try:
         response = (supabase.table("servers")
@@ -65,7 +65,7 @@ async def get_all_servers(user = Depends(verify_token)):
             error=str(e)
         )
 
-@router.post("/new/servers")
+@router.post("/servers")
 async def create_server(request: ServerCreateRequest, user = Depends(verify_token)):
     try:
         existing_server = supabase.table("servers").select("*").eq("user_id", user["sub"]).eq("name", request.name).execute()
@@ -91,7 +91,7 @@ async def create_server(request: ServerCreateRequest, user = Depends(verify_toke
             ).dict()
         )
 
-@router.post("/new/servers/{server_id}/delete")
+@router.post("/servers/{server_id}/delete")
 async def delete_server(server_id: str, user = Depends(verify_token)):
     try:
         (supabase.table("servers")
@@ -109,7 +109,7 @@ async def delete_server(server_id: str, user = Depends(verify_token)):
             error=str(e)
         )
 
-@router.post("/new/servers/{server_id}/start")
+@router.post("/servers/{server_id}/start")
 async def start_server(server_id: str, user = Depends(verify_token)):
     try:
         resp = (supabase.table("servers").select("*").eq("id", server_id).single().execute())
@@ -149,7 +149,7 @@ async def start_server(server_id: str, user = Depends(verify_token)):
             ).dict()
         )
 
-@router.post("/new/servers/{server_id}/stop")
+@router.post("/servers/{server_id}/stop")
 async def stop_server(server_id: str, background_tasks: BackgroundTasks, user = Depends(verify_token)):
     try:
         background_tasks.add_task(ServerService.stop_server, server_id)
@@ -169,7 +169,7 @@ async def stop_server(server_id: str, background_tasks: BackgroundTasks, user = 
 
 
 server_processes = {}
-@router.websocket("/new/ws/console/{server_id}")
+@router.websocket("/ws/console/{server_id}")
 async def websocket_endpoint(websocket: WebSocket, server_id: str):
     await websocket.accept()
 
